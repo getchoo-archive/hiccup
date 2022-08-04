@@ -1,0 +1,17 @@
+{
+  "system_update_cmds":  {
+      "arch": "bash -c 'pacman -Sy --needed archlinux-keyring && pacman -Su'",
+      "debian": "bash -c 'apt update && apt upgrade'",
+      "fedora": "dnf upgrade"
+  },
+  "extra_cmds": {
+      "arch": "aur sync --upgrades --rmdeps --sign --remove --verify"
+  },
+  "shell_plugin_cmds": {
+      "fish": "fish -c 'fisher update'",
+      "zsh": "zsh -c 'source $HOME/.config/zsh/.antidote/antidote.zsh && antidote update'"
+  },
+  "other_cmds": {
+        "neovim": "nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync'"
+  }
+}

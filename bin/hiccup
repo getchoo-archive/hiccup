@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+import json
+import platform
+import os
+
+CONFIG_FILE = os.path.join(os.environ['XDG_CONFIG_HOME'], 'hiccup/config.json')
+current_distro = platform.freedesktop_os_release()["ID"]
+
+
+class DistroNotSupportedError(Exception):
+    def __init__(self, name):
+        self.message = '{} isn\'t supported yet'.format(name)
+        super().__init__(self.message)
+
+
+class CommandFailedError(Exception):
+    def __init__(self, name):
+        self.message = 'failed to use {}'.format(name)
+        super().__init__(self.message)
+
+
+class CurrentDistro:
+    def __init__(self, id: str):
+        try:
+            with open(CONFIG_FILE) as file:
+                data = json.load(file)
+                self.__system_update_cmds = data['system_update_cmds']
+                self.__extra_cmds = data['extra_cmds']
+                self.__shell_plugin_cmds = data['shell_plugin_cmds']
+                self.__other_cmds = data['other_cmds']
+        except Exception:
+            pass
+
+        self.id = id
+
+        if self.is_supported():
+            self.update_cmd = self.get_update_cmd()
+            if self.has_extra_cmd():
+                self.extra_cmd = self.get_extra_cmd()
+        else:
+            raise DistroNotSupportedError(self.id)
+
+    def __get_cmd(self, dct: dict):
+        return dct[self.id]
+
+    def __sudo_cmd(self, name: str, cmd: str):
+        result = os.system('sudo {}'.format(cmd))
+        if result != 0:
+            raise CommandFailedError(name)
+
+    def __sys_cmd(self, name: str, cmd: str):
+        result = os.system(cmd + ' > /dev/null 2>&1')
+        if result != 0:
+            raise CommandFailedError(name)
+
+    def is_supported(self):
+        return self.id in self.__system_update_cmds
+
+    def has_extra_cmd(self):
+        return self.id in self.__extra_cmds
+
+    def get_update_cmd(self):
+        return self.__get_cmd(self.__system_update_cmds)
+
+    def get_extra_cmd(self):
+        return self.__get_cmd(self.__extra_cmds)
+
+    def update_system(self):
+        self.__sudo_cmd(self.id, self.update_cmd)
+        if self.has_extra_cmd():
+            os.system(self.extra_cmd)
+
+    def update_shell_plugins(self):
+        for shell, command in self.__shell_plugin_cmds.items():
+            print('updating {} plugins...'.format(shell))
+            self.__sys_cmd(shell, command)
+
+    def update_other(self):
+        for name, command in self.__other_cmds.items():
+            print('updating {}...'.format(name))
+            self.__sys_cmd(name, command)
+
+    def update_other_sudo(self):
+        for name, command in self.__other_cmds.item():
+            print('updating {}...'.format(name))
+            self.__sudo_cmd(name, command)
+
+    def update_all(self):
+        self.update_system()
+        self.update_shell_plugins()
+        self.update_other()
+
+
+def run():
+    CurrentDistro(current_distro).update_all()
+
+
+if __name__ == '__main__':
+    if os.geteuid() == 0:
+        print('please don\'t run this as root :(')
+        exit(1)
+    try:
+        run()
+        print('done!')
+    except Exception as e:
+        print(repr(e))
+        exit(2)
+else:
+    print('this script can only be run directly')
+    exit(3)
