@@ -1,4 +1,5 @@
 shell = /usr/bin/env bash
+PREFIX ?= $(HOME)/.local
 CONFIG = $(HOME)/.config
 ifeq ($(XDG_CONFIG_HOME),)
 	CONFIG = $(XDG_CONFIG_HOME)
