@@ -5,7 +5,6 @@ import platform
 import os
 
 CONFIG_FILE = os.path.join(os.environ['XDG_CONFIG_HOME'], 'hiccup/config.json')
-current_distro = platform.freedesktop_os_release()["ID"]
 
 
 class DistroNotSupportedError(Exception):
@@ -44,15 +43,18 @@ class CurrentDistro:
     def __get_cmd(self, dct: dict):
         return dct[self.id]
 
-    def __sudo_cmd(self, name: str, cmd: str):
-        result = os.system('sudo {}'.format(cmd))
+    def __sys_cmd(self, name: str, cmd: str, prepend = '', append = ''):
+        result = os.system('{}{}{}'.format(prepend, cmd, append))
         if result != 0:
             raise CommandFailedError(name)
+        return result
 
-    def __sys_cmd(self, name: str, cmd: str):
-        result = os.system(cmd + ' > /dev/null 2>&1')
-        if result != 0:
-            raise CommandFailedError(name)
+    def __run_items(self, msg: str, dct: dict):
+        for name, cmd in dct.items():
+            print(msg.format(name))
+            result = self.__sys_cmd(name, cmd, append = ' &> /dev/null')
+            if result != 0:
+                raise CommandFailedError(name)
 
     def is_supported(self):
         return self.id in self.__system_update_cmds
@@ -67,24 +69,17 @@ class CurrentDistro:
         return self.__get_cmd(self.__extra_cmds)
 
     def update_system(self):
-        self.__sudo_cmd(self.id, self.update_cmd)
+        self.__sys_cmd(self.id, self.update_cmd, prepend = 'sudo ')
         if self.has_extra_cmd():
-            os.system(self.extra_cmd)
+            self.__sys_cmd(self.id, self.extra_cmd)
 
     def update_shell_plugins(self):
-        for shell, command in self.__shell_plugin_cmds.items():
-            print('updating {} plugins...'.format(shell))
-            self.__sys_cmd(shell, command)
+        msg = 'updating {} plugins...'
+        return self.__run_items(msg, self.__shell_plugin_cmds)
 
     def update_other(self):
-        for name, command in self.__other_cmds.items():
-            print('updating {}...'.format(name))
-            self.__sys_cmd(name, command)
-
-    def update_other_sudo(self):
-        for name, command in self.__other_cmds.item():
-            print('updating {}...'.format(name))
-            self.__sudo_cmd(name, command)
+        msg = 'updating {}...'
+        return self.__run_items(msg, self.__other_cmds)
 
     def update_all(self):
         self.update_system()
@@ -93,6 +88,7 @@ class CurrentDistro:
 
 
 def run():
+    current_distro = platform.freedesktop_os_release()["ID"]
     distro = CurrentDistro(current_distro)
 
     parser = argparse.ArgumentParser(
