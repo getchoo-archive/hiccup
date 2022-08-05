@@ -52,7 +52,7 @@ class CurrentDistro:
     def __run_items(self, msg: str, dct: dict):
         for name, cmd in dct.items():
             print(msg.format(name))
-            result = self.__sys_cmd(name, cmd, append = ' &> /dev/null')
+            result = self.__sys_cmd(name, cmd, append = ' > /dev/null 2>&1')
             if result != 0:
                 raise CommandFailedError(name)
 
