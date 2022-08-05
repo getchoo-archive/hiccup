@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import json
 import platform
 import os
@@ -92,7 +93,19 @@ class CurrentDistro:
 
 
 def run():
-    CurrentDistro(current_distro).update_all()
+    distro = CurrentDistro(current_distro)
+
+    parser = argparse.ArgumentParser(
+            description='a python script to help keep you up to date')
+    parser.add_argument("--systemonly", "-s", action="store_true",
+                        default=False, dest="systemonly",
+                        help='only update through the system\'s package manager')  # noqa: E501
+    args = parser.parse_args()
+
+    if args.systemonly:
+        return distro.update_system()
+
+    return distro.update_all()
 
 
 if __name__ == '__main__':
@@ -105,6 +118,3 @@ if __name__ == '__main__':
     except Exception as e:
         print(repr(e))
         exit(2)
-else:
-    print('this script can only be run directly')
-    exit(3)
