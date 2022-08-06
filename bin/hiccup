@@ -20,12 +20,16 @@ class CommandFailedError(Exception):
 
 
 class CurrentDistro:
+    __silent = ' > /dev/null 2>&1'
+    __sudo = 'sudo '
+
     def __init__(self, id: str):
         try:
             with open(CONFIG_FILE) as file:
                 data = json.load(file)
                 self.__system_update_cmds = data['system_update_cmds']
                 self.__extra_cmds = data['extra_cmds']
+                self.__clean_cmds = data['clean_cmds']
                 self.__shell_plugin_cmds = data['shell_plugin_cmds']
                 self.__other_cmds = data['other_cmds']
         except Exception:
@@ -35,6 +39,7 @@ class CurrentDistro:
 
         if self.is_supported():
             self.update_cmd = self.get_update_cmd()
+            self.clean_cmd = self.get_clean_cmd()
             if self.has_extra_cmd():
                 self.extra_cmd = self.get_extra_cmd()
         else:
@@ -43,7 +48,7 @@ class CurrentDistro:
     def __get_cmd(self, dct: dict):
         return dct[self.id]
 
-    def __sys_cmd(self, name: str, cmd: str, prepend = '', append = ''):
+    def __sys_cmd(self, name: str, cmd: str, prepend='', append=''):
         result = os.system('{}{}{}'.format(prepend, cmd, append))
         if result != 0:
             raise CommandFailedError(name)
@@ -52,7 +57,7 @@ class CurrentDistro:
     def __run_items(self, msg: str, dct: dict):
         for name, cmd in dct.items():
             print(msg.format(name))
-            result = self.__sys_cmd(name, cmd, append = ' > /dev/null 2>&1')
+            result = self.__sys_cmd(name, cmd, append=self.__silent)
             if result != 0:
                 raise CommandFailedError(name)
 
@@ -68,10 +73,17 @@ class CurrentDistro:
     def get_extra_cmd(self):
         return self.__get_cmd(self.__extra_cmds)
 
+    def get_clean_cmd(self):
+        return self.__get_cmd(self.__clean_cmds)
+
     def update_system(self):
-        self.__sys_cmd(self.id, self.update_cmd, prepend = 'sudo ')
+        self.__sys_cmd(self.id, self.update_cmd, prepend=self.__sudo)
         if self.has_extra_cmd():
             self.__sys_cmd(self.id, self.extra_cmd)
+
+    def clean_system(self):
+        print('cleaning up system...')
+        self.__sys_cmd(self.id, self.clean_cmd, prepend=self.__sudo)
 
     def update_shell_plugins(self):
         msg = 'updating {} plugins...'
@@ -85,6 +97,7 @@ class CurrentDistro:
         self.update_system()
         self.update_shell_plugins()
         self.update_other()
+        self.clean_system()
 
 
 def run():
@@ -93,11 +106,16 @@ def run():
 
     parser = argparse.ArgumentParser(
             description='a python script to help keep you up to date')
+    parser.add_argument("--cleanonly", "-c", action="store_true",
+                        default=False, dest="cleanonly",
+                        help='only remove unneeded dependencies')
     parser.add_argument("--systemonly", "-s", action="store_true",
                         default=False, dest="systemonly",
                         help='only update through the system\'s package manager')  # noqa: E501
     args = parser.parse_args()
 
+    if args.cleanonly:
+        return distro.clean_system()
     if args.systemonly:
         return distro.update_system()
 
