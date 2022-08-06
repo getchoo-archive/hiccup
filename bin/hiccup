@@ -58,7 +58,7 @@ class CurrentDistro:
         return subprocess.run(
             cmd,
             check=True,
-            executable=os.path.join("/usr/bin/", executable),
+            executable=executable,
             shell=True)
 
     def __run_items(self, msg: str, dct: dict, name_as_cmd=False):
@@ -120,6 +120,7 @@ def get_os_release():
     p: subprocess.Popen = subprocess.Popen(
         cmd,
         shell=True,
+        executable='bash',
         stdout=subprocess.PIPE)
 
     return str(p.communicate()[0], 'UTF-8').strip()
