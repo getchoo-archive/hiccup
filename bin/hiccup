@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 import argparse
 import json
-import platform
+import subprocess
 import os
 
 CONFIG_FILE = os.path.join(os.environ['XDG_CONFIG_HOME'], 'hiccup/config.json')
+OS_RELEASE_PATH = '/etc/os-release'
 
 
 class DistroNotSupportedError(Exception):
@@ -13,15 +14,8 @@ class DistroNotSupportedError(Exception):
         super().__init__(self.message)
 
 
-class CommandFailedError(Exception):
-    def __init__(self, name):
-        self.message = 'failed to use {}'.format(name)
-        super().__init__(self.message)
-
-
 class CurrentDistro:
     __silent = ' > /dev/null 2>&1'
-    __sudo = 'sudo '
 
     def __init__(self, id: str):
         try:
@@ -49,18 +43,32 @@ class CurrentDistro:
     def __get_cmd(self, dct: dict):
         return dct[self.id]
 
-    def __sys_cmd(self, name: str, cmd: str, prepend='', append=''):
-        result = os.system('{}{}{}'.format(prepend, cmd, append))
-        if result != 0:
-            raise CommandFailedError(name)
-        return result
+    def __sys_cmd(
+            self,
+            cmd: str,
+            executable='bash',
+            append='',
+            prepend='',
+            sudo=False):
 
-    def __run_items(self, msg: str, dct: dict):
+        cmd = '{}{}{}'.format(prepend, cmd, append)
+        if sudo:
+            cmd = 'sudo bash -c \'{}\''.format(cmd)
+
+        return subprocess.run(
+            cmd,
+            check=True,
+            executable=os.path.join("/usr/bin/", executable),
+            shell=True)
+
+    def __run_items(self, msg: str, dct: dict, name_as_cmd=False):
+        executable = 'sh'
         for name, cmd in dct.items():
             print(msg.format(name))
-            result = self.__sys_cmd(name, cmd, append=self.__silent)
-            if result != 0:
-                raise CommandFailedError(name)
+
+            if name_as_cmd:
+                executable = name
+            self.__sys_cmd(cmd, executable=executable, append=self.__silent)
 
     def is_supported(self):
         return self.id in self.__system_update_cmds
@@ -81,19 +89,20 @@ class CurrentDistro:
         return self.__get_cmd(self.__clean_cmds)
 
     def update_system(self):
-        self.__sys_cmd(self.id, self.update_cmd, prepend=self.__sudo)
+        self.__sys_cmd(self.update_cmd, sudo=True)
         if self.has_extra_cmd():
-            self.__sys_cmd(self.id, self.extra_cmd)
+            self.__sys_cmd(self.extra_cmd)
 
-    def clean_system(self):
+    def cleanup_system(self):
         if self.has_clean_cmd():
             print('cleaning up system...')
-            return self.__sys_cmd(self.id, self.clean_cmd, prepend=self.__sudo)
-        raise DistroNotSupportedError(self.id)
+            return self.__sys_cmd(self.clean_cmd, sudo=True)
+        print('no cleanup command found for {}'.format(self.id))
 
     def update_shell_plugins(self):
         msg = 'updating {} plugins...'
-        return self.__run_items(msg, self.__shell_plugin_cmds)
+        return self.__run_items(msg, self.__shell_plugin_cmds,
+                                name_as_cmd=True)
 
     def update_other(self):
         msg = 'updating {}...'
@@ -103,26 +112,35 @@ class CurrentDistro:
         self.update_system()
         self.update_shell_plugins()
         self.update_other()
-        if self.has_clean_cmd():
-            self.clean_system()
+        self.cleanup_system()
+
+
+def get_os_release():
+    cmd = 'source {}; echo -n $ID'.format(OS_RELEASE_PATH)
+    p: subprocess.Popen = subprocess.Popen(
+        cmd,
+        shell=True,
+        stdout=subprocess.PIPE)
+
+    return str(p.communicate()[0], 'UTF-8').strip()
 
 
 def run():
-    current_distro = platform.freedesktop_os_release()["ID"]
+    current_distro = get_os_release()
     distro = CurrentDistro(current_distro)
 
     parser = argparse.ArgumentParser(
             description='a python script to help keep you up to date')
     parser.add_argument("--cleanonly", "-c", action="store_true",
                         default=False, dest="cleanonly",
-                        help='only remove unneeded dependencies')
+                        help='cleanup unneeded dependencies')
     parser.add_argument("--systemonly", "-s", action="store_true",
                         default=False, dest="systemonly",
                         help='only update through the system\'s package manager')  # noqa: E501
     args = parser.parse_args()
 
     if args.cleanonly:
-        return distro.clean_system()
+        return distro.cleanup_system()
     if args.systemonly:
         return distro.update_system()
 
