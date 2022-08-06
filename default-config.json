@@ -8,7 +8,7 @@
       "arch": "aur sync --upgrades --rmdeps --sign --remove --verify"
   },
   "clean_cmds": {
-      "arch": "bash -c 'pacman -Qdtq | pacman -Rns -'",
+      "arch": "bash -c 'pacman -Qdtq | pacman -Rns -; exit 0'",
       "debian": "apt-get --purge autoremove",
       "fedora": "dnf autoremove"
   },
