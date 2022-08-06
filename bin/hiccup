@@ -39,7 +39,8 @@ class CurrentDistro:
 
         if self.is_supported():
             self.update_cmd = self.get_update_cmd()
-            self.clean_cmd = self.get_clean_cmd()
+            if self.has_clean_cmd():
+                self.clean_cmd = self.get_clean_cmd()
             if self.has_extra_cmd():
                 self.extra_cmd = self.get_extra_cmd()
         else:
@@ -64,6 +65,9 @@ class CurrentDistro:
     def is_supported(self):
         return self.id in self.__system_update_cmds
 
+    def has_clean_cmd(self):
+        return self.id in self.__clean_cmds
+
     def has_extra_cmd(self):
         return self.id in self.__extra_cmds
 
@@ -82,8 +86,10 @@ class CurrentDistro:
             self.__sys_cmd(self.id, self.extra_cmd)
 
     def clean_system(self):
-        print('cleaning up system...')
-        self.__sys_cmd(self.id, self.clean_cmd, prepend=self.__sudo)
+        if self.has_clean_cmd():
+            print('cleaning up system...')
+            return self.__sys_cmd(self.id, self.clean_cmd, prepend=self.__sudo)
+        raise DistroNotSupportedError(self.id)
 
     def update_shell_plugins(self):
         msg = 'updating {} plugins...'
@@ -97,7 +103,8 @@ class CurrentDistro:
         self.update_system()
         self.update_shell_plugins()
         self.update_other()
-        self.clean_system()
+        if self.has_clean_cmd():
+            self.clean_system()
 
 
 def run():
