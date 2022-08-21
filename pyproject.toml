@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hiccup"
+version = "0.0.1"
+authors = [
+	{ name = "getchoo", email="getchoo@tuta.io"},
+]
+description = "a python script to help keep you up to date"
+readme = "README.md"
+license = { file="LICENSE" }
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/getchoo/hiccup"
+"Bug Tracker" = "https://github.com/getchoo/hiccup/issues"
+
+[project.scripts]
+hiccup = "hiccup:run"
+
+[tool.hatch.build]
+include = [
+    "hiccup.py"
+]

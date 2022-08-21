@@ -19,10 +19,5 @@ see `default-config.json` for example
 ## how to install
 hiccup only needs one command to install :)
 ```sh
-make install
-```
-
-and to uninstall:
-```sh
-make uninstall
+python setup.py install --user
 ```

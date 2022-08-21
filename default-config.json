@@ -5,16 +5,16 @@
       "fedora": "dnf upgrade"
   },
   "extra_cmds": {
-      "arch": "aur sync --upgrades --rmdeps --sign --remove --verify"
+      "arch": "paru -Sua"
   },
   "clean_cmds": {
-      "arch": "pacman -Rns $(pacman -Qdtq); exit 0",
+      "arch": "paru -c",
       "debian": "apt-get --purge autoremove",
       "fedora": "dnf autoremove"
   },
   "shell_plugin_cmds": {
       "fish": "fisher update",
-      "zsh": "source $HOME/.config/zsh/.antidote/antidote.zsh && antidote update"
+      "zsh": "source $ZDOTDIR/.antidote/antidote.zsh && antidote update"
   },
   "other_cmds": {
         "neovim": "nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync'"
