@@ -21,3 +21,5 @@ hiccup only needs one command to install :)
 ```sh
 python setup.py install --user
 ```
+
+or you can use the [aur package](https://aur.archlinux.org/packages/hiccup-git)

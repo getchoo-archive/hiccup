@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-import argparse
 import json
 import subprocess  # nosec:b404
-import os
-
-CONFIG_FILE = os.path.join(os.environ["XDG_CONFIG_HOME"], "hiccup/config.json")
-OS_RELEASE_PATH = "/etc/os-release"
 
 
 class DistroNotSupportedError(Exception):
@@ -14,8 +8,8 @@ class DistroNotSupportedError(Exception):
         super().__init__(self.message)
 
 
-class Distro:
-    def __init__(self, id: str, config_file: os.path):
+class DistroHelper:
+    def __init__(self, id: str, config_file: str):
         try:
             # read and store commands from config file
             with open(config_file) as file:
@@ -28,7 +22,7 @@ class Distro:
         except OSError:
             raise OSError("no config file found!")
         except json.JSONDecodeError:
-            raise json.JSONDecodeError("unable to parse json")
+            pass
 
         self.id = id
 
@@ -114,57 +108,10 @@ class Distro:
 
 
 # reads id from an os-release file
-def get_distro_id(filename: os.path):
+def get_distro_id(filename: str):
     with open(filename) as file:
         for line in file.readlines():
             k, v = line.strip().split("=")
             if k == "ID":
                 return v
-
-
-def run():
-    try:
-        current_distro = get_distro_id(OS_RELEASE_PATH)
-    except DistroNotSupportedError:
-        pass
-    distro = Distro(current_distro, CONFIG_FILE)
-
-    parser = argparse.ArgumentParser(
-        description="a python script to help keep you up to date"
-    )
-    parser.add_argument(
-        "--cleanonly",
-        "-c",
-        action="store_true",
-        default=False,
-        dest="clean_only",
-        help="cleanup unneeded dependencies",
-    )
-    parser.add_argument(
-        "--systemonly",
-        "-s",
-        action="store_true",
-        default=False,
-        dest="system_only",
-        help="only update through the system's package manager",
-    )
-    args = parser.parse_args()
-
-    if args.clean_only:
-        return distro.cleanup_system()
-    if args.system_only:
-        return distro.update_system()
-
-    return distro.update_all()
-
-
-if __name__ == "__main__":
-    if os.geteuid() == 0:
-        print("please don't run this as root :(")
-        exit(1)
-    try:
-        run()
-        print("done!")
-    except Exception as e:
-        print(repr(e))
-        exit(2)
+    return ""

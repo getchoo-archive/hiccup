@@ -23,9 +23,8 @@ classifiers = [
 "Bug Tracker" = "https://github.com/getchoo/hiccup/issues"
 
 [project.scripts]
-hiccup = "hiccup:run"
+hiccup = "hiccup:main"
 
-[tool.hatch.build]
-include = [
-    "hiccup.py"
-]
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["hiccup"]
