@@ -113,5 +113,5 @@ def get_distro_id(filename: str):
         for line in file.readlines():
             k, v = line.strip().split("=")
             if k == "ID":
-                return v
+                return v.strip('"')
     return ""
