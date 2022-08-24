@@ -1,22 +1,22 @@
 {
-  "system_update_cmds":  {
-      "arch": "pacman -Sy --needed archlinux-keyring && pacman -Su",
-      "debian": "apt update && apt upgrade",
-      "fedora": "dnf upgrade"
+  "system_update_cmds": {
+    "arch": "pacman -Sy --needed archlinux-keyring && pacman -Su",
+    "debian": "apt update && apt upgrade",
+    "fedora": "dnf upgrade"
   },
   "extra_cmds": {
-      "arch": "paru -Sua"
+    "arch": "paru -Sua"
   },
   "clean_cmds": {
-      "arch": "paru -c",
-      "debian": "apt-get --purge autoremove",
-      "fedora": "dnf autoremove"
+    "arch": "paru -c",
+    "debian": "apt-get --purge autoremove",
+    "fedora": "dnf autoremove"
   },
   "shell_plugin_cmds": {
-      "fish": "fisher update",
-      "zsh": "source $ZDOTDIR/.antidote/antidote.zsh && antidote update"
+    "fish": "fisher update",
+    "zsh": "source $ZDOTDIR/.antidote/antidote.zsh && antidote update"
   },
   "other_cmds": {
-        "neovim": "nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync'"
+    "neovim": "nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync'"
   }
 }
