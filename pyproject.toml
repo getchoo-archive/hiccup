@@ -1,12 +1,12 @@
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
 
 [project]
 name = "hiccup"
 version = "0.0.1"
 authors = [
-	{ name = "getchoo", email="getchoo@tuta.io"},
+    { name = "getchoo", email="getchoo@tuta.io"},
 ]
 description = "a python script to help keep you up to date"
 readme = "README.md"
@@ -24,7 +24,3 @@ classifiers = [
 
 [project.scripts]
 hiccup = "hiccup:main"
-
-[tool.setuptools]
-package-dir = {"" = "src"}
-packages = ["hiccup"]

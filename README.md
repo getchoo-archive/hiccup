@@ -19,7 +19,7 @@ see `default-config.json` for example
 ## how to install
 hiccup only needs one command to install :)
 ```sh
-python setup.py install --user
+python3 -m flit install --user
 ```
 
 or you can use the [aur package](https://aur.archlinux.org/packages/hiccup-git)
