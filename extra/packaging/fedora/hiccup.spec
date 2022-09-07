@@ -1,10 +1,10 @@
-%global commit 22378abce34f4b27db884692d5d99bec9dcef034
+%global commit 71539b7eb63beac09ad64f8e866536fc0ffb6083
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 
 Name:           hiccup
 Version:        %{shortcommit}
 Release:        1%{?dist}
-Summary:        a python script to help keep you up to date 
+Summary:        a python script to help keep you up to date
 
 License:        MIT
 URL:            https://github.com/getchoo/hiccup
@@ -46,5 +46,7 @@ a python script that attempts to upgrade your system with multiple package manag
 
 
 %changelog
+* Wed Sep 07 2022 seth <getchoo@tuta.io>
+- bump git commit
 * Fri Aug 26 2022 seth <getchoo@tuta.io>
--  initial commit 
+-  initial commit
