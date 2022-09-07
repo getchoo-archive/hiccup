@@ -34,11 +34,28 @@ def run():
         dest="system_only",
         help="only update through the system's package manager",
     )
+    parser.add_argument(
+        "--otheronly",
+        "-o",
+        action="store_true",
+        default=False,
+        dest="other_only",
+        help="only update misc package managers",
+    )
+    parser.add_argument(
+        "--no-output" "-n",
+        action="store_true",
+        default=False,
+        dest="output",
+        help="silence output of misc package managers",
+    )
     args = parser.parse_args()
 
     if args.clean_only:
         return distro.cleanup_system()
-    if args.system_only:
+    elif args.system_only:
         return distro.update_system()
+    elif args.other_only:
+        return distro.update_other(args.output)
 
-    return distro.update_all()
+    return distro.update_all(args.output)

@@ -54,14 +54,14 @@ class DistroHelper:
 
     # iterate through dict of commands, optionally allow for keys to
     # determine the shell the command is run though
-    def __run_items(self, msg: str, dct: dict, name_as_shell=False):
+    def __run_items(self, msg: str, dct: dict, name_as_shell=False, output=False):
         shell = "bash"
         for name, cmd in dct.items():
             print(msg.format(name))
 
             if name_as_shell:
                 shell = name
-            self.__sys_cmd(cmd, shell=shell, silent=True)  # nosec:B604
+            self.__sys_cmd(cmd, shell=shell, silent=output)  # nosec:B604
 
     def is_supported(self):
         return self.id in self.__system_update_cmds
@@ -96,14 +96,14 @@ class DistroHelper:
         msg = "updating {} plugins..."
         return self.__run_items(msg, self.__shell_plugin_cmds, name_as_shell=True)
 
-    def update_other(self):
+    def update_other(self, output):
         msg = "updating {}..."
-        return self.__run_items(msg, self.__other_cmds)
+        return self.__run_items(msg, self.__other_cmds, output)
 
-    def update_all(self):
+    def update_all(self, output):
         self.update_system()
         self.update_shell_plugins()
-        self.update_other()
+        self.update_other(output)
         self.cleanup_system()
 
 
